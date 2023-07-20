@@ -1,5 +1,5 @@
 """
-Lumache - Python library for cooks and food lovers.
+PSProcessing - Matlab function to reconstruct PS data .
 """
 
 __version__ = "0.1.0"
