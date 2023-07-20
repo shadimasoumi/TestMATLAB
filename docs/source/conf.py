@@ -5,7 +5,7 @@
 project = 'Lumache'
 copyright = '2021, Graziella'
 author = 'Graziella'
-
+import os
 release = '0.1'
 version = '0.1.0'
 
@@ -17,7 +17,7 @@ extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.autosummary',
     'sphinx.ext.intersphinx',
-     sphinxcontrib.matlab,
+     'sphinxcontrib.matlab',
 ]
 matlab_src_dir = os.path.dirname(os.path.abspath(__file__))
 primary_domain = "mat"
