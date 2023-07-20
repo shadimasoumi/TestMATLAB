@@ -33,61 +33,16 @@ __all__ = [
     "MatApplication",
 ]
 
-# MATLAB keywords that increment keyword-end pair count
-MATLAB_KEYWORD_REQUIRES_END = list(
-    zip(
-        (Token.Keyword,) * 7,
-        ("arguments", "for", "if", "switch", "try", "while", "parfor"),
-    )
-)
+# TODO: use `self.tokens.pop()` instead of idx += 1, see MatFunction
 
+# XXX: Don't use `type()` or metaclasses. Not trivial to create metafunctions.
+# XXX: Some special attributes **are** required even though `getter()` methods
+# are also used.
 
-# MATLAB attribute type dictionaries.
-# From http://www.mathworks.com/help/matlab/matlab_oop/class-attributes.html
-MATLAB_CLASS_ATTRIBUTE_TYPES = {
-    "Abstract": bool,
-    "AllowedSubclasses": list,
-    "ConstructOnLoad": bool,
-    "HandleCompatible": bool,
-    "Hidden": bool,
-    "InferiorClasses": list,
-    "Sealed": bool,
-}
-
-# From https://mathworks.com/help/matlab/matlab_oop/property-attributes.html
-MATLAB_PROPERTY_ATTRIBUTE_TYPES = {
-    "AbortSet": bool,
-    "Abstract": bool,
-    "Access": list,
-    "Constant": bool,
-    "Dependent": bool,
-    "GetAccess": list,
-    "GetObservable": bool,
-    "Hidden": bool,
-    "NonCopyable": bool,
-    "SetAccess": list,
-    "SetObservable": bool,
-    "Transient": bool,
-    "ClassSetupParameter": bool,
-    "MethodSetupParameter": bool,
-    "TestParameter": bool,
-}
-
-# https://se.mathworks.com/help/matlab/ref/matlab.unittest.testcase-class.html
-MATLAB_METHOD_ATTRIBUTE_TYPES = {
-    "Abstract": bool,
-    "Access": list,
-    "Hidden": bool,
-    "Sealed": list,
-    "Static": bool,
-    "Test": bool,
-    "TestClassSetup": bool,
-    "TestMethodSetup": bool,
-    "TestClassTeardown": bool,
-    "TestMethodTeardown": bool,
-    "ParameterCombination": bool,
-}
-
+# create some MATLAB objects
+# TODO: +packages & @class folders
+# TODO: subfunctions (not nested) and private folders/functions/classes
+# TODO: script files
 
 # Dictionary containing all MATLAB entities that are found in `matlab_src_dir`.
 # The dictionary keys are both the full dotted path, relative to the root.
@@ -95,12 +50,6 @@ MATLAB_METHOD_ATTRIBUTE_TYPES = {
 #   Given a dotted path of: target.+package.ClassBar
 #   Will result in a short name of: package.ClassBar
 entities_table = {}
-
-# Dictionary containing a map of names WITHOUT '+' in package names to
-# the corresponding names WITH '+' in the package name. This is only
-# used if "matlab_auto_link" is on AND "matlab_keep_package_prefix"
-# is True AND a docstring with "see also" is encountered.
-entities_name_map = {}
 
 
 def shortest_name(dotted_path):
@@ -159,7 +108,6 @@ def populate_entities_table(obj, path=""):
         fullpath = path + "." + o.name
         fullpath = fullpath.lstrip(".")
         entities_table[fullpath] = o
-        entities_name_map[strip_package_prefix(fullpath)] = fullpath
         if isinstance(o, MatModule):
             if o.entities:
                 populate_entities_table(o, fullpath)
@@ -204,7 +152,6 @@ def analyze(app):
         short_name = shortest_name(name)
         if short_name != name:
             short_names[short_name] = entity
-            entities_name_map[short_name] = short_name
 
     entities_table.update(short_names)
 
@@ -243,10 +190,6 @@ class MatObject(object):
     def __init__(self, name):
         #: name of MATLAB object
         self.name = name
-
-    def ref_role(self):
-        """Returns role to use for references to this object (e.g. when generating auto-links)"""
-        return "ref"
 
     @property
     def __name__(self):
@@ -452,9 +395,9 @@ class MatObject(object):
         # codeText = codeDesc.text
 
         doc = []
-        if coreDesc is not None and coreDesc.text is not None:
+        if coreDesc is not None:
             doc.append(coreDesc.text)
-        if metaDesc is not None and metaDesc.text is not None:
+        if metaDesc is not None:
             doc.append(metaDesc.text)
         docstring = "\n\n".join(doc)
 
@@ -486,10 +429,6 @@ class MatModule(MatObject):
         self.package = package
         #: entities found in the module: class, function, module (subpath and +package)
         self.entities = []
-
-    def ref_role(self):
-        """Returns role to use for references to this object (e.g. when generating auto-links)"""
-        return "mod"
 
     def safe_getmembers(self):
         logger.debug(
@@ -721,6 +660,14 @@ class MatFunction(MatObject):
     :type tokens: list
     """
 
+    # MATLAB keywords that increment keyword-end pair count
+    mat_kws = list(
+        zip(
+            (Token.Keyword,) * 7,
+            ("arguments", "for", "if", "switch", "try", "while", "parfor"),
+        )
+    )
+
     def __init__(self, name, modname, tokens):
         super(MatFunction, self).__init__(name)
         #: Path of folder containing :class:`MatObject`.
@@ -866,7 +813,7 @@ class MatFunction(MatObject):
             kw_end = 1  # count function keyword
             while kw_end > 0:
                 # increment keyword-end pairs count
-                if kw in MATLAB_KEYWORD_REQUIRES_END:
+                if kw in MatFunction.mat_kws:
                     kw_end += 1
                 # nested function definition
                 elif kw[0] is Token.Keyword and kw[1].strip() == "function":
@@ -894,10 +841,6 @@ class MatFunction(MatObject):
         # if there are any tokens left save them
         if len(tks) > 0:
             self.rem_tks = tks  # save extra tokens
-
-    def ref_role(self):
-        """Returns role to use for references to this object (e.g. when generating auto-links)"""
-        return "func"
 
     @property
     def __doc__(self):
@@ -930,6 +873,51 @@ class MatClass(MatMixin, MatObject):
     :type tokens: list
     """
 
+    #: dictionary of MATLAB class "attributes"
+    # http://www.mathworks.com/help/matlab/matlab_oop/class-attributes.html
+    # https://mathworks.com/help/matlab/matlab_oop/property-attributes.html
+    # https://se.mathworks.com/help/matlab/ref/matlab.unittest.testcase-class.html
+    cls_attr_types = {
+        "Abstract": bool,
+        "AllowedSubclasses": list,
+        "ConstructOnLoad": bool,
+        "HandleCompatible": bool,
+        "Hidden": bool,
+        "InferiorClasses": list,
+        "Sealed": bool,
+    }
+
+    prop_attr_types = {
+        "AbortSet": bool,
+        "Abstract": bool,
+        "Access": list,
+        "Constant": bool,
+        "Dependent": bool,
+        "GetAccess": list,
+        "GetObservable": bool,
+        "Hidden": bool,
+        "NonCopyable": bool,
+        "SetAccess": list,
+        "SetObservable": bool,
+        "Transient": bool,
+        "ClassSetupParameter": bool,
+        "MethodSetupParameter": bool,
+        "TestParameter": bool,
+    }
+    meth_attr_types = {
+        "Abstract": bool,
+        "Access": list,
+        "Hidden": bool,
+        "Sealed": list,
+        "Static": bool,
+        "Test": bool,
+        "TestClassSetup": bool,
+        "TestMethodSetup": bool,
+        "TestClassTeardown": bool,
+        "TestMethodTeardown": bool,
+        "ParameterCombination": bool,
+    }
+
     def __init__(self, name, modname, tokens):
         super(MatClass, self).__init__(name)
         #: Path of folder containing :class:`MatObject`.
@@ -956,7 +944,7 @@ class MatClass(MatMixin, MatObject):
             idx = 1  # token index
 
             # class "attributes"
-            self.attrs, idx = self.attributes(idx, MATLAB_CLASS_ATTRIBUTE_TYPES)
+            self.attrs, idx = self.attributes(idx, MatClass.cls_attr_types)
             # =====================================================================
             # classname
             idx += self._blanks(idx)  # skip blanks
@@ -1031,9 +1019,7 @@ class MatClass(MatMixin, MatObject):
                     prop_name = ""
                     idx += 1
                     # property "attributes"
-                    attr_dict, idx = self.attributes(
-                        idx, MATLAB_PROPERTY_ATTRIBUTE_TYPES
-                    )
+                    attr_dict, idx = self.attributes(idx, MatClass.prop_attr_types)
                     # Token.Keyword: "end" terminates properties & methods block
                     while self._tk_ne(idx, (Token.Keyword, "end")):
                         # skip whitespace
@@ -1229,7 +1215,7 @@ class MatClass(MatMixin, MatObject):
                 if self._tk_eq(idx, (Token.Keyword, "methods")):
                     idx += 1
                     # method "attributes"
-                    attr_dict, idx = self.attributes(idx, MATLAB_METHOD_ATTRIBUTE_TYPES)
+                    attr_dict, idx = self.attributes(idx, MatClass.meth_attr_types)
                     # Token.Keyword: "end" terminates properties & methods block
                     while self._tk_ne(idx, (Token.Keyword, "end")):
                         # skip comments and whitespace
@@ -1319,35 +1305,6 @@ class MatClass(MatMixin, MatObject):
             )
 
         self.rem_tks = idx  # index of last token
-
-    def ref_role(self):
-        """Returns role to use for references to this object (e.g. when generating auto-links)"""
-        return "class"
-
-    def fullname(self, env):
-        """Returns full name for class object, for use as link target"""
-        modname = self.__module__
-        classname = self.name
-        if env.config.matlab_short_links:
-            # modname is only used for package names
-            # - "target.+package" => "package"
-            # - "target" => ""
-            parts = modname.split(".")
-            parts = [part for part in parts if part.startswith("+")]
-            modname = ".".join(parts)
-
-        if not env.config.matlab_keep_package_prefix:
-            modname = strip_package_prefix(modname)
-
-        return f"{modname}.{classname}".lstrip(".")
-
-    def link(self, env, name=None):
-        """Returns link for class object"""
-        target = self.fullname(env)
-        if name:
-            return f":class:`{name} <{target}>`"
-        else:
-            return f":class:`{target}`"
 
     def attributes(self, idx, attr_types):
         """
@@ -1503,14 +1460,6 @@ class MatProperty(MatObject):
         self.docstring = attrs["docstring"]
         # self.class = attrs['class']
 
-    def ref_role(self):
-        """Returns role to use for references to this object (e.g. when generating auto-links)"""
-        return "attr"
-
-    @property
-    def __module__(self):
-        return self.cls.module
-
     @property
     def __doc__(self):
         return self.docstring
@@ -1522,10 +1471,6 @@ class MatMethod(MatFunction):
         super(MatMethod, self).__init__(None, modname, tks)
         self.cls = cls
         self.attrs = attrs
-
-    def ref_role(self):
-        """Returns role to use for references to this object (e.g. when generating auto-links)"""
-        return "meth"
 
     def skip_tokens(self):
         # Number of tokens to skip in `MatClass`

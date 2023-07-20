@@ -20,7 +20,6 @@ from .mat_types import (  # noqa: E401
     MatModuleAnalyzer,
     MatApplication,
     entities_table,
-    entities_name_map,
     strip_package_prefix,
 )
 
@@ -40,8 +39,6 @@ from sphinx.ext.autodoc import (
     ALL,
     INSTANCEATTR,
     members_option,
-    exclude_members_option,
-    EMPTY,
     SUPPRESS,
     annotation_option,
     bool_option,
@@ -174,8 +171,6 @@ class MatlabDocumenter(PyDocumenter):
                 # autodoc-process-docstring is fired and can add some
                 # content if desired
                 docstrings.append([])
-            if self.env.config.matlab_auto_link:
-                docstrings = self.auto_link(docstrings)
             for i, line in enumerate(self.process_doc(docstrings)):
                 self.add_line(line, sourcename, i)
 
@@ -183,210 +178,6 @@ class MatlabDocumenter(PyDocumenter):
         if more_content:
             for line, src in zip(more_content.data, more_content.items):
                 self.add_line(line, src[0], src[1])
-
-    def class_object(self):
-        # the associated MatClass object (for class, property and method documenters)
-        return None
-
-    def auto_link_basic(self, docstrings):
-        return self.auto_link_see_also(docstrings)
-
-    def auto_link_see_also(self, docstrings):
-        # autolink known names in See also
-        see_also_re = re.compile(r"(See also:?\s*)(\b.*\b)(.*)", re.IGNORECASE)
-        see_also_cond_re = re.compile(r"(\s*)(\b.*\b)(.*)")
-        class_re = re.compile(r"(.*)\.([^\.]+)")
-        is_see_also_line = False
-        for i in range(len(docstrings)):
-            for j in range(len(docstrings[i])):
-                line = docstrings[i][j]
-                if line:  # non-blank line
-                    if is_see_also_line:
-                        # find name
-                        match = see_also_cond_re.search(line)
-                        if match is not None:
-                            entries_str = match.group(2)  # the entries
-                    elif match := see_also_re.search(line):
-                        is_see_also_line = True  # line begins with "See also"
-                        entries_str = match.group(2)  # the entries
-                elif is_see_also_line:  # blank line following see also section
-                    is_see_also_line = False  # end see also section
-
-                if is_see_also_line and entries_str:
-                    # split on ,
-                    entries = re.split(r"\s*,\s*", entries_str)
-                    for k in range(len(entries)):
-                        if entries[k].endswith("`"):
-                            continue
-
-                        # search in entities_table (for matching class or function name)
-                        if (
-                            self.env.config.matlab_keep_package_prefix
-                            and entries[k] in entities_table
-                        ):
-                            o = entities_table[entries[k]]
-                        elif (
-                            not self.env.config.matlab_keep_package_prefix
-                            and entries[k] in entities_name_map
-                        ):
-                            o = entities_table[entities_name_map[entries[k]]]
-                        else:
-                            o = None
-                        if o:
-                            role = o.ref_role()
-                            if role in ["class", "func"]:
-                                entries[k] = f":{role}:`{entries[k]}`"
-                                continue
-
-                        # if we have an associated class, search properties and methods
-                        cls = self.class_object()
-                        if cls:
-                            name = entries[k].rstrip("()")
-                            if name in cls.methods:
-                                entries[
-                                    k
-                                ] = f":meth:`{name}() <{cls.fullname(self.env)}.{name}>`"
-                                continue
-                            elif name in cls.properties:
-                                entries[
-                                    k
-                                ] = f":attr:`{name} <{cls.fullname(self.env)}.{name}>`"
-                                continue
-
-                        # see if it is a fully qualified property or method name we recognize
-                        match2 = class_re.search(entries[k])
-                        if match2:
-                            m1 = match2.group(1)
-                            m2 = match2.group(2)
-                            if (
-                                self.env.config.matlab_keep_package_prefix
-                                and m1 in entities_table
-                            ):
-                                cls = entities_table[entries[k]]
-                            elif (
-                                not self.env.config.matlab_keep_package_prefix
-                                and m1 in entities_name_map
-                            ):
-                                cls = entities_table[entities_name_map[m1]]
-                            else:
-                                cls = None
-                            if cls and cls.ref_role() == "class":
-                                name = m2.rstrip("()")
-                                if name in cls.methods:
-                                    entries[k] = f":meth:`{entries[k]}`"
-                                    continue
-                                elif name in cls.properties:
-                                    entries[k] = f":attr:`{entries[k]}`"
-                                    continue
-
-                        # not yet handled
-                        entries[k] = f"``{entries[k]}``"
-
-                    docstrings[i][j] = (
-                        match.group(1) + ", ".join(entries) + match.group(3)
-                    )
-        return docstrings
-
-    def detect_literal_block(self, line, no_link_state):
-        # skip over literal blocks (i.e. line ending with ::, blank line, indented line)
-        # returns not_in_literal_block = True if the line is not in a literal block
-        not_in_literal_block = False
-        if line.endswith("::"):
-            no_link_state = -1  # 1st sign of literal block
-        elif not line:  # blank line
-            if no_link_state == -1:  # if 1st sign already detected
-                no_link_state = -2  # 2nd sign of literal block
-            elif no_link_state == 1:  # if in literal block
-                no_link_state = 0  # end the literal block, restart linking
-        elif no_link_state == -2 and line.startswith("  "):
-            # indented line after 1st 2 signs
-            no_link_state = 1  # beginning of literal block (stop linking!)
-        elif no_link_state != 1:  # not in a literal block, go ahead and link
-            not_in_literal_block = True
-
-        return not_in_literal_block, no_link_state
-
-    def auto_link_all(self, docstrings):
-        # auto-link known classes and functions everywhere
-        for n, o in entities_table.items():
-            role = o.ref_role()
-            if role in ["class", "func"]:
-                nn = n.replace("+", "")  # remove + from name
-                # negative look-behind for ` . + < @ <non-breaking space>
-                look_behind = r"(?<!(`|\.|\+|<|@| ))\b"
-                # negative look-ahead for ` or <non-breaking space> or
-                # " Properties:" or " Methods:" or .<alphanum>
-                look_ahead = r"\b(?!(`| |\sProperties:|\sMethods:|\.\w))"
-                look_ahead2 = r"\b(?!(`| |\sProperties:|\sMethods:))"
-                # entity_name is NOT followed by .<property_or_method>
-                pat = look_behind + nn.replace(".", r"\.") + look_ahead
-                p = re.compile(pat)
-                if role == "class":
-                    # entity_name IS followed by .<property_or_method>
-                    pat2 = (
-                        look_behind + nn.replace(".", r"\.") + r"\.(\w+)" + look_ahead2
-                    )
-                    p2 = re.compile(pat2)
-                no_link_state = 0  # normal mode (no literal block detected)
-                for i in range(len(docstrings)):
-                    for j in range(len(docstrings[i])):
-                        not_in_literal_block, no_link_state = self.detect_literal_block(
-                            docstrings[i][j], no_link_state
-                        )
-                        if not_in_literal_block:
-                            docstrings[i][j] = p.sub(
-                                f":{role}:`{nn}`", docstrings[i][j]
-                            )
-                            if role == "class":
-                                if match := p2.search(docstrings[i][j]):
-                                    # if match.group(1) is a property
-                                    #   -> :attr:`{nn}.{match.group(1)}`
-                                    for nnn, ooo in o.properties.items():
-                                        if match.group(2) == nnn:
-                                            docstrings[i][j] = p2.sub(
-                                                f":attr:`{nn}.{nnn}`", docstrings[i][j]
-                                            )
-                                            break
-                                    # if match.group(1) is a method
-                                    #   -> :meth:`{nn}.{match.group(1)}`
-                                    for nnn, ooo in o.methods.items():
-                                        if match.group(2) == nnn:
-                                            docstrings[i][j] = p2.sub(
-                                                f":meth:`{nn}.{nnn}`", docstrings[i][j]
-                                            )
-                                            break
-
-        return docstrings
-
-    def auto_link(self, docstrings):
-        # basic auto-linking
-        if self.env.config.matlab_auto_link:  # "basic" or "all" (i.e. not None)
-            docstrings = self.auto_link_basic(docstrings)
-
-        # auto-link everywhere
-        if self.env.config.matlab_auto_link == "all":
-            docstrings = self.auto_link_all(docstrings)
-
-        return docstrings
-
-    def auto_link_methods(self, class_obj, docstrings):
-        for n, o in class_obj.methods.items():
-            # negative look-behind for ` . < @ <non-breaking space>, then <name>()
-            pat = r"(?<!(`|\.|<|@| ))\b" + n + r"\(\)(?! )"
-            p = re.compile(pat)
-            no_link_state = 0  # normal mode (no literal block detected)
-            for i in range(len(docstrings)):
-                for j in range(len(docstrings[i])):
-                    not_in_literal_block, no_link_state = self.detect_literal_block(
-                        docstrings[i][j], no_link_state
-                    )
-                    if not_in_literal_block:
-                        docstrings[i][j] = p.sub(
-                            f":meth:`{n}() <{class_obj.fullname(self.env)}.{n}>`",
-                            docstrings[i][j],
-                        )
-
-        return docstrings
 
     def get_object_members(self, want_all):
         """Return `(members_check_module, members)` where `members` is a
@@ -968,6 +759,8 @@ class MatFunctionDocumenter(MatDocstringSignatureMixin, MatModuleLevelDocumenter
     def format_args(self):
         if self.object.args:
             return "(" + ", ".join(self.object.args) + ")"
+        else:
+            return None
 
     def document_members(self, all_members=False):
         pass
@@ -983,7 +776,21 @@ def make_baseclass_links(env, obj):
             if not entity:
                 links.append(":class:`%s`" % base_class_name)
             else:
-                links.append(entity.link(env))
+                modname = entity.__module__
+                classname = entity.name
+                if not env.config.matlab_keep_package_prefix:
+                    modname = strip_package_prefix(modname)
+
+                if env.config.matlab_short_links:
+                    # modname is only used for package names
+                    # - "target.+package" => "package"
+                    # - "target" => ""
+                    parts = modname.split(".")
+                    parts = [part for part in parts if part.startswith("+")]
+                    modname = ".".join(parts)
+
+                link_name = f"{modname}.{classname}"
+                links.append(f":class:`{base_class_name}<{link_name}>`")
 
     return links
 
@@ -1002,7 +809,7 @@ class MatClassDocumenter(MatModuleLevelDocumenter):
         "inherited-members": bool_option,
         "show-inheritance": bool_option,
         "member-order": identity,
-        "exclude-members": exclude_members_option,
+        "exclude-members": members_option,
         "special-members": members_option,
         "private-members": members_option,
         "protected-members": members_option,
@@ -1026,20 +833,20 @@ class MatClassDocumenter(MatModuleLevelDocumenter):
         return ret
 
     def format_args(self):
-        """Format arguments
-
-        We use the method named the same as the class for arguments, but we only
-        renders the arguments if `matlab_class_signature` is True and the method
-        exist.
-        """
-        ctor = self.get_attr(self.object, self.object.name, None)
-
-        if ctor is None or not isinstance(ctor, MatMethod):
+        # for classes, the relevant signature is the "constructor" method,
+        # which has the same name as the class definition
+        initmeth = self.get_attr(self.object, self.object.name, None)
+        # classes without constructor method, default constructor or
+        # constructor written in C?
+        if initmeth is None or not isinstance(initmeth, MatMethod):
             return None
-        if ctor and not self.env.config.matlab_class_signature:
+        if initmeth.args:
+            if initmeth.args[0] in ("obj", "self"):
+                return "(" + ", ".join(initmeth.args[1:]) + ")"
+            else:
+                return "(" + ", ".join(initmeth.args) + ")"
+        else:
             return None
-        if ctor.args:
-            return "(" + ", ".join(ctor.args) + ")"
 
     def format_signature(self):
         if self.doc_as_attr:
@@ -1118,62 +925,6 @@ class MatClassDocumenter(MatModuleLevelDocumenter):
                 MatModuleLevelDocumenter.add_content(self, content, no_docstring=True)
         else:
             MatModuleLevelDocumenter.add_content(self, more_content)
-
-    def class_object(self):
-        # the associated MatClass object
-        return self.object
-
-    def auto_link_basic(self, docstrings):
-        docstrings = MatlabDocumenter.auto_link_basic(self, docstrings)
-        return self.auto_link_class_members(docstrings)
-
-    def auto_link_class_members(self, docstrings):
-        # auto link property and method names in class docstring
-        prop_re = re.compile(r"(.* Properties:)", re.IGNORECASE)
-        meth_re = re.compile(r"(.* Methods:)", re.IGNORECASE)
-        is_prop_line = False
-        is_meth_line = False
-        for i in range(len(docstrings)):
-            for j in range(len(docstrings[i])):
-                line = docstrings[i][j]
-                if line:  # non-blank line
-                    if prop_re.search(line):  # line ends with "Properties:"
-                        is_prop_line = True
-                        is_meth_line = False
-                    elif meth_re.search(line):  # line ends with "Methods:"
-                        is_prop_line = False
-                        is_meth_line = True
-                    elif is_prop_line:
-                        # auto-link first word to corresponding property, if it exists
-                        docstrings[i][j] = self.link_member("attr", line)
-                    elif is_meth_line:
-                        # auto-link first word to corresponding method, if it exists
-                        docstrings[i][j] = self.link_member("meth", line)
-                elif is_prop_line:  # blank line following properties section
-                    is_prop_line = False  # end properties section
-                elif is_meth_line:  # blank line following methods section
-                    is_meth_line = False  # end methods section
-
-        return docstrings
-
-    def link_member(self, type, line):
-        if type == "meth":
-            parens = "()"
-        else:
-            parens = ""
-        p = re.compile(r"((\*\s*)?(\b\w*\b))(?=\s*-)")
-        if match := p.search(line):
-            name = match.group(3)
-            line = p.sub(
-                f"* :{type}:`{name}{parens} <{self.object.fullname(self.env)}.{name}>`",
-                line,
-                1,
-            )
-        return line
-
-    def auto_link_all(self, docstrings):
-        docstrings = self.auto_link_methods(self.object, docstrings)
-        return MatlabDocumenter.auto_link_all(self, docstrings)
 
     def document_members(self, all_members=False):
         if self.doc_as_attr:
@@ -1275,7 +1026,7 @@ class MatClassDocumenter(MatModuleLevelDocumenter):
         # save up original indent and exclude_members
         indent = self.indent
         if self.options.exclude_members:
-            exclude_members = self.options.exclude_members
+            exclude_members = self.options.exclude_members.copy()
         else:
             exclude_members = []
 
@@ -1283,10 +1034,7 @@ class MatClassDocumenter(MatModuleLevelDocumenter):
         self.add_line(heading, "<autodoc>")
         self.indent += "   "
         self.add_line(".. ", "<autodoc>")  # a comment, to force a <dd> in the HTML
-        if exclude_members is EMPTY:
-            self.options.exclude_members = set(new_excludes)
-        else:
-            self.options.exclude_members = set(list(exclude_members) + new_excludes)
+        self.options.exclude_members = exclude_members + new_excludes
         MatModuleLevelDocumenter.document_members(self, all_members)
 
         # restore original indent and exclude_members
@@ -1330,52 +1078,14 @@ class MatMethodDocumenter(MatDocstringSignatureMixin, MatClassLevelDocumenter):
         return ret
 
     def format_args(self):
-        """Format argument
-
-        We omit `obj` and `self` from the output if they are the first argument
-        unless it's a class constructor.
-
-        Rendering -> "(arg1, arg2, arg3)"
-
-        """
-        is_ctor = self.object.cls.name == self.object.name
-
         if self.object.args:
-            if self.object.args[0] in ("obj", "self") and not is_ctor:
+            if self.object.args[0] in ("obj", "self"):
                 return "(" + ", ".join(self.object.args[1:]) + ")"
             else:
                 return "(" + ", ".join(self.object.args) + ")"
 
     def document_members(self, all_members=False):
         pass
-
-    def class_object(self):
-        # the associated MatClass object
-        return self.object.cls
-
-    def auto_link_self(self, docstrings):
-        name = self.object.name
-        # negative look-behind for ` or . or < or @ or <non-breaking space>
-        # and negative look-ahead for <non-breaking space> or .<alphanum>
-        p = re.compile(r"(?<!(`|\.|<|@| ))\b" + name + r"\b(?! |\.\w)")
-        no_link_state = 0  # normal mode (no literal block detected)
-        for i in range(len(docstrings)):
-            for j in range(len(docstrings[i])):
-                not_in_literal_block, no_link_state = self.detect_literal_block(
-                    docstrings[i][j], no_link_state
-                )
-                if not_in_literal_block and docstrings[i][j]:  # also not blank line
-                    if match := p.search(docstrings[i][j]):
-                        docstrings[i][j] = p.sub(
-                            f":meth:`{name}() <{self.class_object().fullname(self.env)}.{name}>`",
-                            docstrings[i][j],
-                        )
-        return docstrings
-
-    def auto_link_all(self, docstrings):
-        docstrings = self.auto_link_methods(self.object.cls, docstrings)
-        docstrings = self.auto_link_self(docstrings)
-        return MatlabDocumenter.auto_link_all(self, docstrings)
 
 
 class MatAttributeDocumenter(MatClassLevelDocumenter):
@@ -1446,34 +1156,6 @@ class MatAttributeDocumenter(MatClassLevelDocumenter):
         #     # wrong thing to display
         #     no_docstring = True
         MatClassLevelDocumenter.add_content(self, more_content, no_docstring)
-
-    def class_object(self):
-        # the associated MatClass object
-        return self.object.cls
-
-    def auto_link_self(self, docstrings):
-        name = self.object.name
-        # negative look-behind for ` or . or < or <non-breaking space>
-        # and negative look-ahead for <non-breaking space>
-        p = re.compile(r"(?<!(`|\.|<| ))\b" + name + r"\b(?! )")
-        no_link_state = 0  # normal mode (no literal block detected)
-        for i in range(len(docstrings)):
-            for j in range(len(docstrings[i])):
-                not_in_literal_block, no_link_state = self.detect_literal_block(
-                    docstrings[i][j], no_link_state
-                )
-                if not_in_literal_block and docstrings[i][j]:  # also not blank line
-                    if match := p.search(docstrings[i][j]):
-                        docstrings[i][j] = p.sub(
-                            f":attr:`{name} <{self.class_object().fullname(self.env)}.{name}>`",
-                            docstrings[i][j],
-                        )
-        return docstrings
-
-    def auto_link_all(self, docstrings):
-        docstrings = self.auto_link_methods(self.object.cls, docstrings)
-        docstrings = self.auto_link_self(docstrings)
-        return MatlabDocumenter.auto_link_all(self, docstrings)
 
 
 class MatInstanceAttributeDocumenter(MatAttributeDocumenter):
