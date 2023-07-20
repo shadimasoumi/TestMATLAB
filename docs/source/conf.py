@@ -19,6 +19,8 @@ extensions = [
     'sphinx.ext.intersphinx',
      sphinxcontrib.matlab,
 ]
+matlab_src_dir = os.path.dirname(os.path.abspath(__file__))
+primary_domain = "mat"
 
 intersphinx_mapping = {
     'python': ('https://docs.python.org/3/', None),
@@ -34,4 +36,4 @@ html_theme = 'sphinx_rtd_theme'
 
 # -- Options for EPUB output
 epub_show_urls = 'footnote'
-primary_domain = "mat"
+
