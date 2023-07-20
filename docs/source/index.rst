@@ -1,13 +1,10 @@
-Welcome to Lumache's documentation!
+Welcome to PSProcessing's documentation!
 ===================================
 
-**Lumache** (/lu'make/) is a Python library for cooks and food lovers
-that creates recipes mixing random ingredients.
-It pulls data from the `Open Food Facts database <https://world.openfoodfacts.org/>`_
-and offers a *simple* and *intuitive* API.
+**PSProcessing** includes many functions to reconstruct PS data.
 
-Check out the :doc:`usage` section for further information, including
-how to :ref:`installation` the project.
+Check out the :doc:`usage` section for further information, and
+more explanation regarding :ref:`Stokes Vector`.
 
 .. note::
 
@@ -20,21 +17,3 @@ Contents
 
    usage
    api
-
-
-
-Test Data
-=========
-This is the test data module.
-
-.. automodule:: test_data
-
-:mod:`test_data` is a really cool module.
-
-My Handle Class
----------------
-This is the handle class definition.
-
-.. autoclass:: MyHandleClass
-    :show-inheritance:
-    :members:
