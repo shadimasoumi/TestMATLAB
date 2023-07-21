@@ -6,11 +6,11 @@ Usage
 Stokes Vector
 ------------
 
-To use Lumache, first install it using pip:
+Birefringence is measured using Stokes vectors ``S1`` and ``S2``, corresponding to the Stokes vectors measured 
+for an input polarization state modulated between states orthogonal on the
+:ref:`Poincaree Sphere`, using :ref:`spectral binning`
 
-.. code-block:: console
-
-   (.venv) $ pip install lumache
+   function out = PSProcess(S1,S2,procStruct)
 
 .. _Poincare Sphere:
 
