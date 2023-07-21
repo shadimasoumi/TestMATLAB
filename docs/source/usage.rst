@@ -13,6 +13,10 @@ for an input polarization state modulated between states orthogonal on the
 .. code-block:: console
 
    function out = PSProcess(S1,S2,procStruct)
+you can find the function at PSProcess_
+
+
+.. _PSProcess: https://github.com/mvWellman/PSProcessing/blob/489f6fb415022a96c237486b8d49b5905b482112/PSProcess.m
 
 .. math:: S_p=\begin{bmatrix} I_p\\Q_p\\U_p\\V_p \end{bmatrix}
 
