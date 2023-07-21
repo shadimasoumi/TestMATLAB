@@ -16,7 +16,7 @@ for an input polarization state modulated between states orthogonal on the
 
 
 
-.. math:: \begin{bmatrix} I\\Q\\U\\V \end{bmatrix}
+.. math:: S_p=\begin{bmatrix} I_p\\Q_p\\U_p\\V_p \end{bmatrix}
 
 .. _Poincare Sphere:
 
