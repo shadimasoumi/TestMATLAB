@@ -10,7 +10,8 @@ Birefringence is measured using Stokes vectors ``S1`` and ``S2``, corresponding 
 for an input polarization state modulated between states orthogonal on the
 :ref:`Poincaree Sphere`, using :ref:`Spectral binning`
 
-   function out = PSProcess(S1,S2,procStruct)
+.. code-block::
+function out = PSProcess(S1,S2,procStruct)
 
 
 
