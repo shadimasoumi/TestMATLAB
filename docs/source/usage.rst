@@ -14,7 +14,7 @@ for an input polarization state modulated between states orthogonal on the
 
 
 
-.. math:: \begin{bmatrix} 1 & 2 & 3\\ a & b & c \end{bmatrix}
+.. math:: \begin{bmatrix} I\\Q\\U\\V \end{bmatrix}
 
 .. _Poincare Sphere:
 
