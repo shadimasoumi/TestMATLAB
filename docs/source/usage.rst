@@ -21,12 +21,11 @@ for an input polarization state modulated between states orthogonal on the
 Poincare Sphere
 ----------------
 
-To retrieve a list of random ingredients,
-you can use the ``lumache.get_random_ingredients()`` function:
+Test hyperlink: SO_.
+    
+.. _SO: https://www.thorlabs.com/newgrouppage9.cfm?objectgroup_id=14200
 
-.. autofunction:: lumache.get_random_ingredients
-
-
+.. image::
 
 .. _Spectral binning:
 
