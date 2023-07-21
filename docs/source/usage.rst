@@ -11,8 +11,8 @@ for an input polarization state modulated between states orthogonal on the
 :ref:`Poincaree Sphere`, using :ref:`Spectral binning`
 
 
-.. code-block:: MATLAB
- function out = PSProcess(S1,S2,procStruct)
+.. code-block:: 
+   function out = PSProcess(S1,S2,procStruct)
 
 
 
