@@ -4,7 +4,7 @@ Welcome to PSProcessing's documentation!
 **PSProcessing** includes many functions to reconstruct PS data.
 
 Check out the :doc:`usage` section for further information, and
-more explanation regarding :ref:`Stokes Vector`.
+more explanation regarding :ref:`Stokes Vector`and :ref:`Poincare Sphere`
 
 .. note::
 
