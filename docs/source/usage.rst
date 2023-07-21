@@ -25,7 +25,7 @@ Test hyperlink: SO_.
     
 .. _SO: https://www.thorlabs.com/newgrouppage9.cfm?objectgroup_id=14200
 
-.. image:: docs/source/PoincareSphereIntro_A1-350.gif
+.. image:: PoincareSphereIntro_A1-350.gif
 
 .. _Spectral binning:
 
