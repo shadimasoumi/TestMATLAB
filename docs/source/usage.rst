@@ -14,7 +14,8 @@ for an input polarization state modulated between states orthogonal on the
 
 
 
-.. math::  \begin{bmatrix}
+.. math:: 
+\begin{bmatrix}
 1 & 2 & 3\\
 a & b & c
 \end{bmatrix}
