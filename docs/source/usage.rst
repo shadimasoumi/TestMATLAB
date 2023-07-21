@@ -31,7 +31,7 @@ Below is a representation of Poincare Sphere: Thorlabs_
 
 Spectral binning_
 ----------------
-.. _Spectral binning: https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3724396/
+.. _Spectral_binning: https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3724396/
 
 The principle strategy behind our algorithm relies on the fact that the impact of Polarization mode dispersion (PMD) depends on the ratio of its magnitude with the system resolution and using a spectral window narrowed by a factor N thus allows reducing the influence of the system PMD on the polarization image.
 
