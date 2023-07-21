@@ -21,9 +21,9 @@ for an input polarization state modulated between states orthogonal on the
 Poincare Sphere
 ----------------
 
-Test hyperlink: SO_.
+Below is a representation of Poincare Sphere: Thorlabs_.
     
-.. _SO: https://www.thorlabs.com/newgrouppage9.cfm?objectgroup_id=14200
+.. _Thorlabs: https://www.thorlabs.com/newgrouppage9.cfm?objectgroup_id=14200
 
 .. image:: PoincareSphereIntro_A1-350.gif
 
