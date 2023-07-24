@@ -19,11 +19,13 @@ function out = PSProcess(S1,S2,procStruct)
     % :arg dz: axial spacing over which to compute the local retardance
     %
     %
-    % because the local retardation is converted to degrees of rotation per
-    % depth in the tissue, the axial scaling of the tomogram is required.
+
     fwx = procStruct.fwx;
     dz = procStruct.dz;
     rcorr = [];
+
+    % because the local retardation is converted to degrees of rotation per
+    % depth in the tissue, the axial scaling of the tomogram is required.
 if isfield(procStruct,'dzres')
     dzres = procStruct.dzres;
 else
