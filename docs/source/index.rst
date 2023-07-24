@@ -16,4 +16,25 @@ Contents
 .. toctree::
 
    usage
-   api
+   API
+
+
+Test Data
+=========
+This is the test data.
+
+.. automodule:: test_data
+
+
+PSProcess
+---------------
+
+.. code-block:: console
+
+   function out = PSProcess(S1,S2,procStruct)
+
+This is the PSProcess definition.
+
+.. autofunction:: PSProcess()
+
+
