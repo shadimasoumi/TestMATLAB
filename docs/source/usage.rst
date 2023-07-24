@@ -39,5 +39,3 @@ Spectral binning
 
 The principle strategy behind our algorithm_ relies on the fact that the impact of Polarization mode dispersion (PMD) depends on the ratio of its magnitude with the system resolution and using a spectral window narrowed by a factor N thus allows reducing the influence of the system PMD on the polarization image.
 
-
-
