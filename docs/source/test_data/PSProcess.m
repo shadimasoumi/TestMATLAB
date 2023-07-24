@@ -1,4 +1,5 @@
 function out = PSProcess(S1,S2,procStruct)
+
     %PSProcess computes local birefringence of the 
     %Stokes vectors S1 and S2, corresponding to the Stokes vectors measured 
     %for an input polarization state modulated between states orthogonal on the
@@ -16,9 +17,9 @@ function out = PSProcess(S1,S2,procStruct)
     %
     % :fwx: width of filtering in lateral dimension
     % :dz: axial spacing over which to compute the local retardance
-fwx = procStruct.fwx;
-dz = procStruct.dz;
-rcorr = [];
+    fwx = procStruct.fwx;
+    dz = procStruct.dz;
+    rcorr = [];
     %
     %
     % because the local retardation is converted to degrees of rotation per
