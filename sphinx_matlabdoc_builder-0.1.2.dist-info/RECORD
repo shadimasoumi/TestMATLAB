@@ -1,0 +1,12 @@
+sphinx_matlabdoc_builder-0.1.2.dist-info/INSTALLER,sha256=zuuue4knoyJ-UwPPXg8fezS7VCrXJQrAP7zeNuwvFQg,4
+sphinx_matlabdoc_builder-0.1.2.dist-info/LICENSE,sha256=GfN8v0cPRD1pbfZhPHRB4rK21C7g56QxGunK3W8vlPQ,1322
+sphinx_matlabdoc_builder-0.1.2.dist-info/METADATA,sha256=WRq73hHo-koWF3xAKJrLRwf7e0aa9AvRbFBTfCO6f4I,3377
+sphinx_matlabdoc_builder-0.1.2.dist-info/RECORD,,
+sphinx_matlabdoc_builder-0.1.2.dist-info/REQUESTED,sha256=47DEQpj8HBSa-_TImW-5JCeuQeRkm5NMpJWZG3hSuFU,0
+sphinx_matlabdoc_builder-0.1.2.dist-info/WHEEL,sha256=p46_5Uhzqz6AzeSosiOnxK-zmFja1i22CrQCjmYe8ec,92
+sphinx_matlabdoc_builder-0.1.2.dist-info/entry_points.txt,sha256=S0S7DK4qlNPRmoFAEQ-yRxOljOsjiI3uqT8aP3nvwLM,56
+sphinx_matlabdoc_builder-0.1.2.dist-info/top_level.txt,sha256=rzV-JbAd5w-OpqixnR8jsAbrwtJsTt5blqCP2c6kCdI,25
+sphinx_matlabdoc_builder/__init__.py,sha256=bppiSpXunb8iU_FLy-xO-7Tfo-rvCx4pYaVL4XQfdxg,330
+sphinx_matlabdoc_builder/__pycache__/__init__.cpython-311.pyc,,
+sphinx_matlabdoc_builder/__pycache__/matlab_doc_builder.cpython-311.pyc,,
+sphinx_matlabdoc_builder/matlab_doc_builder.py,sha256=3YpjCmqaQPXhWIG-MGpwAnZmfxfe4OBcAP75951u8vs,3552

@@ -1,0 +1,3 @@
+[sphinx.builders]
+matlabdoc = sphinx_matlabdoc_builder
+
