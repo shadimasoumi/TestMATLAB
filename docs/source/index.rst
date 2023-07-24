@@ -29,10 +29,6 @@ This is the test data.
 PSProcess
 ---------------
 
-.. code-block:: console
-
-   function out = PSProcess(S1,S2,procStruct)
-
 This is the PSProcess definition.
 
 .. autofunction:: PSProcess(S1,S2,procStruct)
