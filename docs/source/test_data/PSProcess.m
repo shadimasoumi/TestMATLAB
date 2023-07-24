@@ -14,8 +14,8 @@ function out = PSProcess(S1,S2,procStruct)
     % :param S2: measured Stokes vector for the second input polarization state
     % the only two mandatory arguments are
     %
-    % :param fwx: width of filtering in lateral dimension
-    % :param dz: axial spacing over which to compute the local retardance
+    % :fwx: width of filtering in lateral dimension
+    % :dz: axial spacing over which to compute the local retardance
     fwx = procStruct.fwx;
     dz = procStruct.dz;
     rcorr = [];
