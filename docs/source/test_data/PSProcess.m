@@ -1,5 +1,14 @@
 function out = PSProcess(S1,S2,procStruct)
-    % a function to computes local birefringence
+    %PSProcess computes local birefringence of the 
+    %Stokes vectors S1 and S2, corresponding to the Stokes vectors measured 
+    %for an input polarization state modulated between states orthogonal on the
+    %Poincaree sphere, using spectral binning.
+    %The third dimension, if present, is for spectral binning.
+    %
+    %PSProcess computes the local retardance matrix for each bin, then finds
+    %the necessary alignment between the various spectral bins independently
+    %for each A-line.
+    %
     %
     % :param S1: measured Stokes vector for the first input polarization state
     % :param S2: measured Stokes vector for the second input polarization state
