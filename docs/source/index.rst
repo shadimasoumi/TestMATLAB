@@ -5,6 +5,7 @@ Welcome to PSProcessing's documentation!
 
 Check out the :doc:`usage` section for further information, and
 more explanation regarding :ref:`Stokes Vector` and :ref:`Poincare Sphere`.
+Automatic documentation of the functions is also available at :doc:`functions`.
 
 .. note::
 
@@ -16,22 +17,8 @@ Contents
 .. toctree::
 
    usage
+   functions
    API
-
-
-Test Data
-=========
-This is the test data.
-
-.. automodule:: test_data
-
-
-PSProcess
----------------
-
-This is the PSProcess definition.
-
-.. autofunction:: PSProcess(S1,S2,procStruct)
 
 
 
