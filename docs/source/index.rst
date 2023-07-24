@@ -1,4 +1,4 @@
-Welcome to PSProcessing's documentation!
+PSProcessing's documentation!
 ===================================
 
 **PSProcessing** includes many functions to reconstruct PS data.
