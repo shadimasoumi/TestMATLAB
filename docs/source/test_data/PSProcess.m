@@ -6,7 +6,7 @@ function out = PSProcess(S1,S2,procStruct)
     % the only two mandatory arguments are
     %
     % :param fwx: width of filtering in lateral dimension
-    % :param dz: xial spacing over which to compute the local retardance
+    % :param dz: axial spacing over which to compute the local retardance
     fwx = procStruct.fwx;
     dz = procStruct.dz;
     rcorr = [];
