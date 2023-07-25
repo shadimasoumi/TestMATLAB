@@ -1,6 +1,6 @@
 function out = PSProcess(S1,S2,procStruct)
 %PSProcess - computes local birefringence
-
+%
     %PSProcess computes local birefringence of the 
     %Stokes vectors S1 and S2, corresponding to the Stokes vectors measured 
     %for an input polarization state modulated between states orthogonal on the
