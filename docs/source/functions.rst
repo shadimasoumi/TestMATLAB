@@ -1,8 +1,8 @@
-Test Data
+Functions
 =========
 This is the test data.
 
-.. automodule:: test_data
+.. automodule:: MatlabFiles
 
 
 PSProcess
